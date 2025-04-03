@@ -25,8 +25,8 @@ type (
 	}
 )
 
-// Login handles user authentication and creates a new session
-func (sessMgr *SessionManager) Login(c *gin.Context) {
+// LoginHandler handles user authentication and creates a new session
+func (sessMgr *SessionManager) LoginHandler(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -73,8 +73,8 @@ func (sessMgr *SessionManager) Login(c *gin.Context) {
 	})
 }
 
-// Logout invalidates the current session
-func (sessMgr *SessionManager) Logout(c *gin.Context) {
+// LogoutHandler invalidates the current session
+func (sessMgr *SessionManager) LogoutHandler(c *gin.Context) {
 	userID := sessMgr.GetUserID(c)
 	if userID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
@@ -91,8 +91,8 @@ func (sessMgr *SessionManager) Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
 }
 
-// Register creates a new user account
-func (sessMgr *SessionManager) Register(c *gin.Context) {
+// RegisterHandler creates a new user account
+func (sessMgr *SessionManager) RegisterHandler(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

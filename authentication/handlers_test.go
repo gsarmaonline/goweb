@@ -82,7 +82,7 @@ func TestRegister(t *testing.T) {
 			c.Request = httptest.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
-			sessMgr.Register(c)
+			sessMgr.RegisterHandler(c)
 
 			assert.Equal(t, tt.expectedCode, w.Code)
 		})
@@ -142,7 +142,7 @@ func TestLogin(t *testing.T) {
 			c.Request = httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
-			sessMgr.Login(c)
+			sessMgr.LoginHandler(c)
 
 			assert.Equal(t, tt.expectedCode, w.Code)
 
@@ -203,7 +203,7 @@ func TestLogout(t *testing.T) {
 			c.Request = httptest.NewRequest(http.MethodPost, "/logout", nil)
 			tt.setupAuth(c)
 
-			sessMgr.Logout(c)
+			sessMgr.LogoutHandler(c)
 
 			assert.Equal(t, tt.expectedCode, w.Code)
 
