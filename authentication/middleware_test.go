@@ -7,8 +7,10 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
@@ -45,10 +47,12 @@ func TestAuthMiddleware(t *testing.T) {
 		{
 			name: "valid token",
 			setupAuth: func(req *http.Request) {
-				session := NewSession(secretKey)
-				session.User = &SessionUser{Email: "test@example.com"}
-				session.User.ID = 123
-				session.createToken(defaultTokenDuration)
+				user := &SessionUser{Email: "test@example.com"}
+				user.ID = 123
+				session, err := NewSession(secretKey, user, "127.0.0.1", "test-agent")
+				if err != nil {
+					t.Fatalf("Failed to create session: %v", err)
+				}
 				req.Header.Set("Authorization", bearerSchema+session.Token)
 			},
 			expectedCode:   http.StatusOK,
@@ -87,11 +91,23 @@ func TestAuthMiddleware(t *testing.T) {
 		{
 			name: "expired token",
 			setupAuth: func(req *http.Request) {
-				session := NewSession(secretKey)
-				session.User = &SessionUser{Email: "test@example.com"}
-				session.User.ID = 123
-				session.createToken(-defaultTokenDuration) // negative duration for expired token
-				req.Header.Set("Authorization", bearerSchema+session.Token)
+				user := &SessionUser{Email: "test@example.com"}
+				user.ID = 123
+				// Create claims directly without creating a session
+				claims := claims{
+					UserID: user.ID,
+					RegisteredClaims: jwt.RegisteredClaims{
+						ExpiresAt: jwt.NewNumericDate(time.Now().Add(-time.Hour)),
+						IssuedAt:  jwt.NewNumericDate(time.Now().Add(-time.Hour)),
+						NotBefore: jwt.NewNumericDate(time.Now().Add(-time.Hour)),
+					},
+				}
+				token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+				tokenString, err := token.SignedString(secretKey)
+				if err != nil {
+					t.Fatalf("Failed to create expired token: %v", err)
+				}
+				req.Header.Set("Authorization", bearerSchema+tokenString)
 			},
 			expectedCode:  http.StatusUnauthorized,
 			expectedError: "Token has expired",

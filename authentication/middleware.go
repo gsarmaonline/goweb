@@ -39,7 +39,15 @@ func (sessMgr *SessionManager) AuthMiddleware(c *gin.Context) {
 		return
 	}
 
-	session := NewSession(sessMgr.secretKey)
+	// Create temporary session for token validation
+	dummyUser := &SessionUser{}
+	session, err := NewSession(sessMgr.secretKey, dummyUser, c.ClientIP(), c.Request.UserAgent())
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid token",
+		})
+		return
+	}
 	session.Token = tokenString
 
 	claims, err := session.parseToken()
