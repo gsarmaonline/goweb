@@ -5,7 +5,7 @@ all: test
 
 # Run tests across all packages
 test:
-	go test ./...
+	go test -v ./...
 
 # Run tests with verbose output
 test-v:
